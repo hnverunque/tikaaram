@@ -12,26 +12,17 @@ body {
   margin: 0 auto;
   background: white;
   min-height: 100vh;
-  padding: 90px 10px 80px; /* TOP = fixed header space, BOTTOM = navbar */
+  padding: 10px 10px 80px; /* ONLY navbar space */
   box-sizing: border-box;
 }
 
-/* HEADER */
+/* HEADER (NOW NORMAL, NOT FIXED) */
 .header {
   padding: 18px;
   background: linear-gradient(135deg, #059669, #10b981);
   color: white;
-}
-
-/* FIXED HEADER */
-.fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  max-width: 420px;
-  margin: auto;
-  z-index: 1000;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* CARD */
@@ -67,7 +58,7 @@ button {
   font-weight: bold;
 }
 
-/* NAVBAR */
+/* NAVBAR (STILL FIXED) */
 .navbar {
   position: fixed;
   bottom: 0;
