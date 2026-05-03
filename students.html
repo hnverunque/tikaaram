@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Student Details</title>
+<title>Students</title>
 <link rel="stylesheet" href="style.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -14,41 +14,71 @@
     <img src="logo.png" alt="Tikaaram Logo">
     <div class="logo-text">
       <h2>Tikaaram</h2>
-      <p>Student Details</p>
+      <p>Students</p>
     </div>
   </div>
 </div>
 
 <div class="app">
 
-<!-- BACK BUTTON -->
+<!-- SEARCH -->
 <div class="card fade-in">
-  <a href="students.html" class="small">← Back to Students</a>
+  <input 
+    type="text" 
+    id="studentSearch" 
+    placeholder="Search student..." 
+    oninput="filterStudents()"
+    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"
+  />
 </div>
 
-<!-- STUDENT PROFILE -->
-<div class="card fade-in delay" id="studentProfile">
-  <h3 id="studentName">Loading...</h3>
-  <p class="small" id="studentMeta">Please wait while we fetch student data.</p>
+<!-- FILTER BUTTONS (NEW) -->
+<div class="card fade-in delay">
+  <h4>Filter Category</h4>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+
+    <button onclick="setFilter('all')" class="small">All</button>
+    <button onclick="setFilter('Math')" class="small">Math</button>
+    <button onclick="setFilter('Literacy')" class="small">Literacy</button>
+
+  </div>
 </div>
 
-<!-- SCORES SECTION -->
-<div class="card fade-in delay-2">
+<!-- STUDENT LIST -->
+<div class="card fade-in delay">
+  <h3>Student List</h3>
+
+  <div id="studentList">
+    <p class="small">Loading students...</p>
+  </div>
+</div>
+
+<!-- STUDENT DETAIL PANEL -->
+<div class="card fade-in delay-2" id="studentDetailPanel" style="display:none;">
+  <h3>Student Profile</h3>
+
+  <h3 id="studentName">Select a student</h3>
+  <p class="small" id="studentMeta">No student selected.</p>
+
+  <hr>
+
   <h3>OMR Results</h3>
-
   <div id="studentScores">
-    <!-- dynamically filled -->
     <p class="small">No data loaded yet.</p>
   </div>
+
+  <hr>
+
+  <h3>Performance Summary</h3>
+  <div id="studentSummary">
+    <p class="small">Select a student to view analytics.</p>
+  </div>
 </div>
 
-<!-- PERFORMANCE SUMMARY -->
-<div class="card fade-in delay-3">
-  <h3>Performance Summary</h3>
-
-  <div id="studentSummary">
-    <p class="small">Loading analytics...</p>
-  </div>
+<!-- EMPTY STATE -->
+<div class="card fade-in" id="emptyState">
+  <p class="small">Select a student from the list to view full details.</p>
 </div>
 
 </div>
@@ -64,17 +94,117 @@
 <script src="app.js"></script>
 
 <script>
-// Get student ID from URL
-const params = new URLSearchParams(window.location.search);
-const studentId = params.get("id");
+let currentFilter = "all";
 
-// Load student details
-if (studentId) {
-  renderStudentDetail(studentId);
-} else {
-  document.getElementById("studentName").innerText = "Student Not Found";
-  document.getElementById("studentMeta").innerText = "No student ID provided in URL.";
+/*
+====================================================
+LOAD STUDENTS WITH FILTER SUPPORT
+====================================================
+*/
+function loadStudentList() {
+  const container = document.getElementById("studentList");
+  const students = getAllStudents();
+
+  container.innerHTML = "";
+
+  if (!students || students.length === 0) {
+    container.innerHTML = "<p class='small'>No students found.</p>";
+    return;
+  }
+
+  students.forEach(student => {
+
+    // FILTER LOGIC (NEW)
+    if (currentFilter !== "all" && student.type !== currentFilter) {
+      return;
+    }
+
+    const div = document.createElement("div");
+    div.className = "card student-item fade-in";
+    div.style.marginBottom = "10px";
+
+    div.innerHTML = `
+      <h4>${student.name}</h4>
+      <p class="small">ID: ${student.id}</p>
+      <p class="small">Type: ${student.type || "Uncategorized"}</p>
+      <button class="small" onclick="renderStudentDetailInline('${student.id}')">
+        View Details →
+      </button>
+    `;
+
+    container.appendChild(div);
+  });
 }
+
+/*
+====================================================
+SET FILTER FUNCTION (NEW)
+====================================================
+*/
+function setFilter(type) {
+  currentFilter = type;
+  loadStudentList();
+}
+
+/*
+====================================================
+INLINE DETAIL VIEW (UNCHANGED CORE)
+====================================================
+*/
+function renderStudentDetailInline(studentId) {
+  const student = getStudentById(studentId);
+
+  if (!student) return;
+
+  document.getElementById("studentDetailPanel").style.display = "block";
+  document.getElementById("emptyState").style.display = "none";
+
+  document.getElementById("studentName").innerText = student.name;
+  document.getElementById("studentMeta").innerText =
+    `ID: ${student.id} • Type: ${student.type || "N/A"}`;
+
+  const scoresEl = document.getElementById("studentScores");
+  scoresEl.innerHTML = "";
+
+  if (student.scores && student.scores.length > 0) {
+    student.scores.forEach(score => {
+      const p = document.createElement("p");
+      p.className = "small";
+      p.innerText = `${score.subject}: ${score.score}`;
+      scoresEl.appendChild(p);
+    });
+  } else {
+    scoresEl.innerHTML = "<p class='small'>No OMR results available.</p>";
+  }
+
+  const avg = student.scores?.length
+    ? (student.scores.reduce((a, b) => a + b.score, 0) / student.scores.length).toFixed(2)
+    : "N/A";
+
+  document.getElementById("studentSummary").innerHTML = `
+    <p class="small">Average Score: ${avg}</p>
+    <p class="small">Total Subjects: ${student.scores?.length || 0}</p>
+  `;
+}
+
+/*
+====================================================
+SEARCH FILTER
+====================================================
+*/
+function filterStudents() {
+  const input = document.getElementById("studentSearch").value.toLowerCase();
+  const items = document.querySelectorAll(".student-item");
+
+  items.forEach(item => {
+    const name = item.innerText.toLowerCase();
+    item.style.display = name.includes(input) ? "block" : "none";
+  });
+}
+
+// INITIAL LOAD
+loadStudentList();
+
 </script>
 
 </body>

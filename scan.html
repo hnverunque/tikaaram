@@ -47,6 +47,18 @@
   <h4>Student Information</h4>
   <input id="student" placeholder="Enter Student Name">
 
+  <!-- ✅ NEW SUBJECT SELECTOR -->
+  <h4 style="margin-top:15px;">Subject Type</h4>
+  <select id="subject" style="
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ddd;
+  ">
+    <option value="Math">Math</option>
+    <option value="Literacy">Literacy</option>
+  </select>
+
   <h4 style="margin-top:15px;">Answer Key</h4>
   <input id="key" value="B,D,A,C,B">
 
@@ -59,15 +71,6 @@
   <input type="file" id="file" hidden>
 </div>
 
-<!-- RESULT SECTION -->
-<div class="card fade-in delay-3">
-  <h4>Result</h4>
-
-  <h2 id="score" style="margin:10px 0;">--</h2>
-
-  <div id="results"></div>
-</div>
-
 </div>
 
 <!-- NAVBAR -->
@@ -77,6 +80,94 @@
   <a href="students.html">👥<br>Students</a>
   <a href="profile.html">👤<br>Profile</a>
 </div>
+
+<!-- =========================
+     MODAL RESULT
+========================= -->
+<div id="resultModal" style="
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+
+  <div style="
+    width:90%;
+    max-width:420px;
+    background:rgba(255,255,255,0.95);
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    animation: popIn 0.25s ease-out;
+    position:relative;
+  ">
+
+    <button onclick="closeModal()" style="
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:32px;
+      height:32px;
+      border:none;
+      border-radius:50%;
+      background:#ff4d4d;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+    ">✖</button>
+
+    <h3 style="text-align:center; margin:0;">Scan Result</h3>
+
+    <h4 id="modalSubject" style="
+      text-align:center;
+      margin:5px 0;
+      color:#888;
+    "></h4>
+
+    <h1 id="modalScore" style="
+      text-align:center;
+      margin:10px 0;
+      font-size:32px;
+      color:#2ecc71;
+    ">--</h1>
+
+    <div id="modalResults" style="max-height:200px; overflow:auto;"></div>
+
+  </div>
+</div>
+
+<style>
+.result-item{
+  padding:10px;
+  margin:6px 0;
+  border-radius:10px;
+  font-size:14px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.result-item.correct{
+  background:#e8f9f0;
+  border-left:5px solid #2ecc71;
+}
+
+.result-item.wrong{
+  background:#ffecec;
+  border-left:5px solid #e74c3c;
+}
+
+@keyframes popIn{
+  from{transform:scale(0.7);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+</style>
 
 <script src="app.js"></script>
 
@@ -101,30 +192,52 @@ file.onchange = e => {
   video.style.display = "none";
 };
 
+/*
+====================================================
+SCAN FUNCTION (UPDATED WITH SUBJECT)
+====================================================
+*/
 function scan(){
   let key = document.getElementById("key").value.split(",");
   let answers = ["B","D","A","C","B"];
 
   let correct = 0;
-  let output = document.getElementById("results");
-  output.innerHTML = "";
+  let output = "";
 
   answers.forEach((a,i)=>{
     let ok = a === key[i];
     if(ok) correct++;
 
-    output.innerHTML += `
+    output += `
       <div class="result-item ${ok ? 'correct' : 'wrong'}">
-        Question ${i+1}: ${a}
+        <span>Question ${i+1}</span>
+        <span>${a}</span>
       </div>
     `;
   });
 
   let score = `${correct}/${key.length}`;
-  document.getElementById("score").innerText = "Score: " + score;
 
   let name = document.getElementById("student").value || "Unknown";
-  saveStudent(name, score);
+  let subject = document.getElementById("subject").value;
+
+  // SAVE WITH SUBJECT (IMPORTANT FOR FILTERING)
+  saveStudent(name, [correct], subject);
+
+  document.getElementById("modalSubject").innerText = subject;
+  document.getElementById("modalScore").innerText = score;
+  document.getElementById("modalResults").innerHTML = output;
+
+  document.getElementById("resultModal").style.display = "flex";
+}
+
+/*
+====================================================
+CLOSE MODAL
+====================================================
+*/
+function closeModal(){
+  document.getElementById("resultModal").style.display = "none";
 }
 </script>
 

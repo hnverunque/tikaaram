@@ -1,85 +1,213 @@
 let students = JSON.parse(localStorage.getItem("students")) || [];
 
-function saveStudent(name, score){
-  students.push({
+/*
+====================================================
+SAVE STUDENT
+====================================================
+Now supports:
+- id (required for selection)
+- scores (array OR string supported safely)
+====================================================
+*/
+function saveStudent(name, scores = [], grade = null) {
+  const student = {
+    id: Date.now(), // unique ID for linking
     name,
-    score,
+    scores,
+    grade,
     date: new Date().toLocaleString()
-  });
+  };
 
+  students.push(student);
   localStorage.setItem("students", JSON.stringify(students));
 }
 
-function getStats(){
+/*
+====================================================
+GET ALL STUDENTS
+====================================================
+*/
+function getAllStudents() {
+  return JSON.parse(localStorage.getItem("students")) || [];
+}
+
+/*
+====================================================
+GET SINGLE STUDENT
+====================================================
+*/
+function getStudentById(id) {
+  const students = getAllStudents();
+  return students.find(s => String(s.id) === String(id));
+}
+
+/*
+====================================================
+CORE SCORE NORMALIZER + AVERAGE CALCULATOR
+====================================================
+This is the FIX that makes EVERYTHING work reliably:
+- supports "85%"
+- supports "85/100"
+- supports numbers
+- supports mixed arrays
+====================================================
+*/
+function calculateAverage(scores) {
+  if (!scores) return "0.00";
+
+  let clean = [];
+
+  // CASE 1: string input ("85/100" or "85%")
+  if (typeof scores === "string") {
+    if (scores.includes("/")) {
+      const parts = scores.split("/");
+      const val = (Number(parts[0]) / Number(parts[1])) * 100;
+      return isNaN(val) ? "0.00" : val.toFixed(2);
+    }
+
+    const val = Number(scores.replace("%", ""));
+    return isNaN(val) ? "0.00" : val.toFixed(2);
+  }
+
+  // CASE 2: array input
+  if (Array.isArray(scores)) {
+    clean = scores.map(v => {
+      if (typeof v === "string") {
+        if (v.includes("/")) {
+          const p = v.split("/");
+          return (Number(p[0]) / Number(p[1])) * 100;
+        }
+        return Number(v.replace("%", ""));
+      }
+      return Number(v);
+    });
+  }
+
+  clean = clean.filter(v => !isNaN(v));
+
+  if (clean.length === 0) return "0.00";
+
+  const avg = clean.reduce((a, b) => a + b, 0) / clean.length;
+
+  return avg.toFixed(2);
+}
+
+/*
+====================================================
+GLOBAL STATS (FIXED & STABLE)
+====================================================
+*/
+function getStats() {
+  const students = getAllStudents();
+
   let total = students.length;
-  let avg = 0;
+  let totalSum = 0;
+  let valid = 0;
 
-  students.forEach(s=>{
-    let parts = s.score.split("/");
-    avg += parts[0]/parts[1];
+  students.forEach(s => {
+    const avg = Number(calculateAverage(s.scores));
+
+    if (!isNaN(avg) && avg > 0) {
+      totalSum += avg;
+      valid++;
+    }
   });
 
-  avg = total ? Math.round((avg/total)*100) : 0;
-
-  return { total, avg };
+  return {
+    total,
+    avg: valid ? Math.round(totalSum / valid) : 0
+  };
 }
 
-function renderStudents(containerId){
-  let list = document.getElementById(containerId);
-  if(!list) return;
+/*
+====================================================
+STUDENT LIST RENDER
+====================================================
+*/
+function loadStudentList() {
+  const container = document.getElementById("studentList");
+  const students = getAllStudents();
 
-  list.innerHTML = "";
+  container.innerHTML = "";
 
-  students.forEach(s=>{
-    list.innerHTML += `
-      <div class="card">
-        <b>${s.name}</b><br>
-        Score: ${s.score}<br>
-        <span class="small">${s.date}</span>
-      </div>`;
-  });
-}
-
-function renderStudentDetail(id) {
-  let students = JSON.parse(localStorage.getItem("students")) || [];
-
-  let student = students.find(s => s.id == id);
-
-  if (!student) {
-    document.getElementById("studentName").innerText = "Student Not Found";
-    document.getElementById("studentMeta").innerText = "No matching record found.";
+  if (!students || students.length === 0) {
+    container.innerHTML = "<p class='small'>No students found.</p>";
     return;
   }
 
-  // Header info
+  students.forEach(student => {
+    const div = document.createElement("div");
+    div.className = "card student-item fade-in";
+    div.style.marginBottom = "10px";
+
+    const avg = calculateAverage(student.scores);
+
+    div.innerHTML = `
+      <h4>${student.name}</h4>
+      <p class="small">ID: ${student.id}</p>
+      <p class="small">Avg: ${avg}%</p>
+      <button class="small" onclick="renderStudentDetailInline('${student.id}')">
+        View Details →
+      </button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+/*
+====================================================
+INLINE STUDENT DETAIL VIEW
+====================================================
+*/
+function renderStudentDetailInline(id) {
+  const student = getStudentById(id);
+
+  if (!student) return;
+
+  document.getElementById("studentDetailPanel").style.display = "block";
+  document.getElementById("emptyState").style.display = "none";
+
+  // NAME + META
   document.getElementById("studentName").innerText = student.name;
   document.getElementById("studentMeta").innerText =
-    "ID: " + student.id + " • Grade: " + (student.grade || "N/A");
+    `ID: ${student.id} • Grade: ${student.grade || "N/A"} • Date: ${student.date}`;
 
-  // Scores (example structure)
-  let scoresHTML = "";
+  // SCORES
+  const scoresEl = document.getElementById("studentScores");
+  scoresEl.innerHTML = "";
 
   if (student.scores && student.scores.length > 0) {
     student.scores.forEach((score, index) => {
-      scoresHTML += `
-        <div class="score-item">
-          <strong>Test ${index + 1}:</strong> ${score}%<br>
-        </div>
-      `;
+      const p = document.createElement("p");
+      p.className = "small";
+      p.innerText = `Exam ${index + 1}: ${score}%`;
+      scoresEl.appendChild(p);
     });
   } else {
-    scoresHTML = "<p class='small'>No OMR results available.</p>";
+    scoresEl.innerHTML = "<p class='small'>No OMR results available.</p>";
   }
 
-  document.getElementById("studentScores").innerHTML = scoresHTML;
-
-  // Summary
-  let avg = student.scores?.length
-    ? (student.scores.reduce((a, b) => a + b, 0) / student.scores.length).toFixed(2)
-    : 0;
+  // SUMMARY (FIXED ALWAYS SAFE)
+  const avg = calculateAverage(student.scores);
 
   document.getElementById("studentSummary").innerHTML = `
     <p><strong>Average Score:</strong> ${avg}%</p>
     <p><strong>Total Exams:</strong> ${student.scores?.length || 0}</p>
   `;
+}
+
+/*
+====================================================
+FILTER STUDENTS
+====================================================
+*/
+function filterStudents() {
+  const input = document.getElementById("studentSearch").value.toLowerCase();
+  const items = document.querySelectorAll(".student-item");
+
+  items.forEach(item => {
+    const name = item.innerText.toLowerCase();
+    item.style.display = name.includes(input) ? "block" : "none";
+  });
 }
