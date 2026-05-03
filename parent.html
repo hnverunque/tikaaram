@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tikaaram Parent Portal</title>
+<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<!-- FIXED HEADER -->
+<div class="header fixed-header">
+  <div class="logo-header">
+    <img src="logo.png" alt="Tikaaram Logo">
+    <div class="logo-text">
+      <h2>Tikaaram</h2>
+      <p>Parent Monitoring Portal</p>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- TITLE -->
+<div class="card fade-in">
+  <h3>Student Overview</h3>
+  <p class="small">
+    Select your child’s name to securely view performance records.
+  </p>
+</div>
+
+<!-- STUDENT LIST -->
+<div class="card fade-in delay">
+  <h3>Leaners List</h3>
+  <div id="parentStudentList">
+    <p class="small">Loading students...</p>
+  </div>
+</div>
+
+</div>
+
+<!-- =========================
+     PASSCODE MODAL
+========================= -->
+<div id="passModal" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+
+  <div class="card" style="width:90%;max-width:350px;">
+
+    <h3>Enter Access Code</h3>
+    <p class="small">This is required to view student records.</p>
+
+    <input id="accessCode" placeholder="Enter code" style="
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      margin-top:10px;
+    ">
+
+    <div style="margin-top:15px;">
+      <button onclick="verifyCode()" class="primary-btn" style="width:100%;">
+        Access
+      </button>
+      <button onclick="closePass()" style="width:100%; margin-top:10px;">
+        Cancel
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- =========================
+     STUDENT DETAIL MODAL
+========================= -->
+<div id="detailModal" style="
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+
+  <div class="card" style="width:90%;max-width:400px;">
+
+    <button onclick="closeDetail()" style="
+      float:right;
+      border:none;
+      background:#ff4d4d;
+      color:white;
+      padding:5px 10px;
+      border-radius:6px;
+      cursor:pointer;
+    ">✖</button>
+
+    <h3 id="childName">Student</h3>
+
+    <div id="childScores"></div>
+
+    <hr>
+
+    <div id="childSummary"></div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+<script>
+let selectedStudent = null;
+
+/*
+====================================================
+LOAD STUDENTS (OVERVIEW ONLY)
+====================================================
+*/
+function loadParentStudents() {
+  const container = document.getElementById("parentStudentList");
+  const students = getAllStudents();
+
+  container.innerHTML = "";
+
+  if (!students || students.length === 0) {
+    container.innerHTML = "<p class='small'>No students available.</p>";
+    return;
+  }
+
+  students.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "card student-item";
+    div.style.cursor = "pointer";
+
+    div.innerHTML = `
+      <h4>${s.name}</h4>
+      <p class="small">Tap to view securely</p>
+    `;
+
+    div.onclick = () => openPasscode(s.id);
+
+    container.appendChild(div);
+  });
+}
+
+/*
+====================================================
+OPEN PASSCODE
+====================================================
+*/
+function openPasscode(id){
+  selectedStudent = getStudentById(id);
+
+  if(!selectedStudent){
+    alert("Student not found.");
+    return;
+  }
+
+  document.getElementById("accessCode").value = "";
+  document.getElementById("passModal").style.display = "flex";
+}
+
+/*
+====================================================
+VERIFY CODE
+====================================================
+*/
+function verifyCode(){
+  let code = document.getElementById("accessCode").value;
+
+  let expected = String(selectedStudent.id).slice(-4);
+
+  if(code === expected){
+    closePass();
+    showDetails();
+  } else {
+    alert("Incorrect access code.");
+  }
+}
+
+/*
+====================================================
+SHOW STUDENT DETAILS
+====================================================
+*/
+function showDetails(){
+  document.getElementById("detailModal").style.display = "flex";
+
+  document.getElementById("childName").innerText = selectedStudent.name;
+
+  // SCORES
+  let html = "";
+
+  if(selectedStudent.scores && selectedStudent.scores.length){
+    selectedStudent.scores.forEach((s,i)=>{
+      html += `<p class="small">Exam ${i+1}: ${s}%</p>`;
+    });
+  } else {
+    html = "<p class='small'>No records found.</p>";
+  }
+
+  document.getElementById("childScores").innerHTML = html;
+
+  // SUMMARY
+  let avg = selectedStudent.scores?.length
+    ? (selectedStudent.scores.reduce((a,b)=>a+b,0)/selectedStudent.scores.length).toFixed(2)
+    : 0;
+
+  document.getElementById("childSummary").innerHTML = `
+    <p><strong>Average:</strong> ${avg}%</p>
+    <p><strong>Total Exams:</strong> ${selectedStudent.scores?.length || 0}</p>
+  `;
+}
+
+/*
+====================================================
+CLOSE MODALS
+====================================================
+*/
+function closePass(){
+  document.getElementById("passModal").style.display = "none";
+}
+
+function closeDetail(){
+  document.getElementById("detailModal").style.display = "none";
+}
+
+/*
+====================================================
+INIT
+====================================================
+*/
+loadParentStudents();
+</script>
+
+</body>
+</html>
