@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Profile</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- FIXED HEADER -->
+<div class="header fixed-header">
+  <div class="logo-header">
+    <img src="logo.png" alt="Tikaaram Logo">
+    <div class="logo-text">
+      <h2>Tikaaram</h2>
+      <p>Admin Dashboard</p>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- PAGE TITLE -->
+<div class="card fade-in">
+  <h3>Profile Dashboard</h3>
+  <p class="small">
+    Manage system overview, monitor analytics, and control data settings.
+  </p>
+</div>
+
+<!-- ADMIN PROFILE CARD -->
+<div class="card fade-in delay">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div style="width:50px; height:50px; border-radius:50%; background:#e5e7eb;"></div>
+    <div>
+      <h3 style="margin:0;">Tikaaram Learning Center</h3>
+      <p class="small" style="margin:0;">Administrator Account</p>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM STATS -->
+<div class="card fade-in delay-2">
+  <h4>System Analytics</h4>
+
+  <div class="stats-grid">
+    <div class="stat-box">
+      <h2 id="pStudents">0</h2>
+      <p class="small">Total Students</p>
+    </div>
+
+    <div class="stat-box">
+      <h2 id="pAvg">0%</h2>
+      <p class="small">Average Score</p>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIONS -->
+<div class="card fade-in delay-3">
+  <h4>System Controls</h4>
+  <p class="small">
+    Manage stored data and reset system records if needed.
+  </p>
+
+  <button class="danger-btn" onclick="reset()">
+    Reset All Data
+  </button>
+</div>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <a href="index.html">🏠<br>Home</a>
+  <a href="scan.html">📷<br>Scan</a>
+  <a href="students.html">👥<br>Students</a>
+  <a href="profile.html" class="active">👤<br>Profile</a>
+</div>
+
+<script src="app.js"></script>
+
+<script>
+let stats = getStats();
+
+document.getElementById("pStudents").innerText = stats.total;
+document.getElementById("pAvg").innerText = stats.avg + "%";
+
+function reset(){
+  if(confirm("Are you sure you want to reset all data? This cannot be undone.")){
+    localStorage.clear();
+    location.reload();
+  }
+}
+</script>
+
+</body>
+</html>

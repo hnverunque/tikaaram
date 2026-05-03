@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Home</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- FIXED HEADER -->
+<div class="header fixed-header">
+  <div class="logo-header">
+    <img src="logo.png">
+    <div class="logo-text">
+      <h2>Tikaaram</h2>
+      <p>Smart Learning System</p>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- HERO / SPLASH -->
+<div class="hero">
+  <img src="logo.png" class="hero-logo">
+  <h2 class="fade-in">Welcome to Tikaaram</h2>
+  <p class="small fade-in delay">Scan. Learn. Improve.</p>
+</div>
+
+<!-- CONTENT -->
+<div class="card">
+  <h3>About</h3>
+  <p>
+    Tikaaram integrates tutoring with smart OMR worksheets, allowing
+    instant grading and performance tracking.
+  </p>
+
+  <!-- LINK TO ABOUT PAGE -->
+  <a href="about.html" style="display:inline-block; margin-top:10px; color:#10b981; font-weight:600; text-decoration:none;">
+    Learn more about Tikaaram →
+  </a>
+</div>
+
+<div class="card">
+  <h3>Analytics</h3>
+  <div class="stats">
+    <div class="stat">
+      <h2 id="students">0</h2>
+      <div class="small">Students</div>
+    </div>
+    <div class="stat">
+      <h2 id="avg">0%</h2>
+      <div class="small">Average</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- FIXED NAV -->
+<div class="navbar">
+  <a href="index.html" class="active">🏠<br>Home</a>
+  <a href="scan.html">📷<br>Scan</a>
+  <a href="students.html">👥<br>Students</a>
+  <a href="profile.html">👤<br>Profile</a>
+</div>
+
+<script src="app.js"></script>
+<script>
+let stats = getStats();
+document.getElementById("students").innerText = stats.total;
+document.getElementById("avg").innerText = stats.avg + "%";
+</script>
+
+</body>
+</html>

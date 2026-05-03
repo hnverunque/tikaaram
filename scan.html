@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Scan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- FIXED HEADER -->
+<div class="header fixed-header">
+  <div class="logo-header">
+    <img src="logo.png" alt="Tikaaram Logo">
+    <div class="logo-text">
+      <h2>Tikaaram</h2>
+      <p>OMR Scanning System</p>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- PAGE TITLE -->
+<div class="card fade-in">
+  <h3>Scan Answer Sheet</h3>
+  <p class="small">
+    Capture or upload an OMR sheet and automatically compute results.
+  </p>
+</div>
+
+<!-- CAMERA / PREVIEW SECTION -->
+<div class="card fade-in delay">
+  <div class="camera-box">
+    <video id="video" autoplay></video>
+    <img id="preview" style="display:none;">
+  </div>
+
+  <p class="small" style="margin-top:10px;">
+    Use camera or upload an image for scanning.
+  </p>
+</div>
+
+<!-- INPUT SECTION -->
+<div class="card fade-in delay-2">
+
+  <h4>Student Information</h4>
+  <input id="student" placeholder="Enter Student Name">
+
+  <h4 style="margin-top:15px;">Answer Key</h4>
+  <input id="key" value="B,D,A,C,B">
+
+  <div class="button-group">
+    <button onclick="startCamera()">📷 Camera</button>
+    <button onclick="upload()">⬆ Upload</button>
+    <button class="primary-btn" onclick="scan()">Scan Paper</button>
+  </div>
+
+  <input type="file" id="file" hidden>
+</div>
+
+<!-- RESULT SECTION -->
+<div class="card fade-in delay-3">
+  <h4>Result</h4>
+
+  <h2 id="score" style="margin:10px 0;">--</h2>
+
+  <div id="results"></div>
+</div>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <a href="index.html">🏠<br>Home</a>
+  <a href="scan.html" class="active">📷<br>Scan</a>
+  <a href="students.html">👥<br>Students</a>
+  <a href="profile.html">👤<br>Profile</a>
+</div>
+
+<script src="app.js"></script>
+
+<script>
+let video = document.getElementById("video");
+let preview = document.getElementById("preview");
+let file = document.getElementById("file");
+
+function startCamera(){
+  navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => video.srcObject = stream);
+}
+
+function upload(){
+  file.click();
+}
+
+file.onchange = e => {
+  let url = URL.createObjectURL(e.target.files[0]);
+  preview.src = url;
+  preview.style.display = "block";
+  video.style.display = "none";
+};
+
+function scan(){
+  let key = document.getElementById("key").value.split(",");
+  let answers = ["B","D","A","C","B"];
+
+  let correct = 0;
+  let output = document.getElementById("results");
+  output.innerHTML = "";
+
+  answers.forEach((a,i)=>{
+    let ok = a === key[i];
+    if(ok) correct++;
+
+    output.innerHTML += `
+      <div class="result-item ${ok ? 'correct' : 'wrong'}">
+        Question ${i+1}: ${a}
+      </div>
+    `;
+  });
+
+  let score = `${correct}/${key.length}`;
+  document.getElementById("score").innerText = "Score: " + score;
+
+  let name = document.getElementById("student").value || "Unknown";
+  saveStudent(name, score);
+}
+</script>
+
+</body>
+</html>

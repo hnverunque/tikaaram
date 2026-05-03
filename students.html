@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Details</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- FIXED HEADER -->
+<div class="header fixed-header">
+  <div class="logo-header">
+    <img src="logo.png" alt="Tikaaram Logo">
+    <div class="logo-text">
+      <h2>Tikaaram</h2>
+      <p>Student Details</p>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- BACK BUTTON -->
+<div class="card fade-in">
+  <a href="students.html" class="small">← Back to Students</a>
+</div>
+
+<!-- STUDENT PROFILE -->
+<div class="card fade-in delay" id="studentProfile">
+  <h3 id="studentName">Loading...</h3>
+  <p class="small" id="studentMeta">Please wait while we fetch student data.</p>
+</div>
+
+<!-- SCORES SECTION -->
+<div class="card fade-in delay-2">
+  <h3>OMR Results</h3>
+
+  <div id="studentScores">
+    <!-- dynamically filled -->
+    <p class="small">No data loaded yet.</p>
+  </div>
+</div>
+
+<!-- PERFORMANCE SUMMARY -->
+<div class="card fade-in delay-3">
+  <h3>Performance Summary</h3>
+
+  <div id="studentSummary">
+    <p class="small">Loading analytics...</p>
+  </div>
+</div>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <a href="index.html">🏠<br>Home</a>
+  <a href="scan.html">📷<br>Scan</a>
+  <a href="students.html" class="active">👥<br>Students</a>
+  <a href="profile.html">👤<br>Profile</a>
+</div>
+
+<script src="app.js"></script>
+
+<script>
+// Get student ID from URL
+const params = new URLSearchParams(window.location.search);
+const studentId = params.get("id");
+
+// Load student details
+if (studentId) {
+  renderStudentDetail(studentId);
+} else {
+  document.getElementById("studentName").innerText = "Student Not Found";
+  document.getElementById("studentMeta").innerText = "No student ID provided in URL.";
+}
+</script>
+
+</body>
+</html>
