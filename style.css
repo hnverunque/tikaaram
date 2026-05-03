@@ -288,3 +288,75 @@ video, img {
 .result-item.wrong {
   border-left: 4px solid #ef4444;
 }
+
+/* RESPONSIVE LAYOUT */
+* {
+  box-sizing: border-box;
+}
+
+/* Make images scale properly */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent horizontal scrolling */
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* App container adapts to screen */
+.app {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+/* Cards become full width on mobile */
+.card {
+  width: 100%;
+}
+
+/* HERO scaling */
+.hero {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+/* NAVBAR responsive layout */
+.navbar {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+/* MOBILE ADJUSTMENTS */
+@media (max-width: 600px) {
+  .logo-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .logo-text h2 {
+    font-size: 18px;
+  }
+
+  .hero h2 {
+    font-size: 22px;
+  }
+
+  .hero p {
+    font-size: 14px;
+  }
+
+  .stat h2 {
+    font-size: 20px;
+  }
+
+  .navbar a {
+    font-size: 12px;
+    padding: 8px;
+  }
+}
